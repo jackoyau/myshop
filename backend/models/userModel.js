@@ -29,6 +29,17 @@ userSchema.methods.matchPassword = async function(enteredPassword){
     return await bcrypt.compare(enteredPassword, this.password)
 }
 
+// use "pre" to do sth before 'save'
+userSchema.pre('save', async function (next) {
+    if(!this.isModified('password')){
+        next()
+    } // We Only run this pre function when the password Change!
+    // if only username change, and we still run this function, new hash password will be generated, then we cannot login again
+
+    const salt = await bcrypt.genSalt(10)
+    this.password = await bcrypt.hash(this.password, salt)
+})
+
 const User = mongoose.model('User',userSchema)
 
 export default User
